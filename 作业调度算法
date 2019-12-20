@@ -1,1 +1,116 @@
 
+class PCB:
+    def __init__(self,queue,arr_time,run_time,sta_time,end_time,order):  #构造函数
+        self.queue = queue
+        self.arr_time = arr_time
+        self.run_time = run_time
+        self.sta_time = sta_time
+        self.end_time = end_time
+        self.order = order
+
+    def output(self):   #输出
+        print("作业序号:"+str(self.queue),"开始时间:"+str(self.sta_time),"结束时间:"+str(self.end_time))
+
+def Input(data):      #初始化作业
+        list1 = []
+        list2 = []
+        list1 = data.split(" ")
+        length = len(list1)/3
+        turn_time(list1)
+        for i in range(0,int(len(list1)/3)):
+            list2.append(PCB(list1[3*i],list1[3*i+1],list1[3*i+2],0,0,0))
+        return list2
+
+def turn_time(list1):
+        for i in range(0,int(len(list1)/3)):
+            str1 = ''
+            str1 = list1[3*i+1]
+            list1[3*i+1] = int(str1[:-2])*60 + int(str1[-2:])
+        return list1
+
+def back_time(num):
+    str1 = ''
+    if(num % 60 < 10):
+        str1 = str(num // 60) + ':0' + str(num % 60)
+    elif(num % 60 == 0):
+        str1 = str(num // 60) + ':' + str(num % 60) +'0'
+    else:
+        str1 = str(num // 60) + ':' + str(num % 60)
+    return str1
+
+def fcfs(list2,a):               #先来先服务
+    list2[0].sta_time = list2[0].arr_time
+    list2[0].end_time = int(list2[0].sta_time) + int(list2[0].run_time)
+    for i in range(1,a):
+        list2[i].sta_time = list2[i-1].end_time
+        list2[i].end_time = int(list2[i].sta_time) + int(list2[i].run_time)
+    for i in range(0,a):
+        list2[i].sta_time = back_time(int(list2[i].sta_time))
+        list2[i].end_time = back_time(int(list2[i].end_time))
+    return list2
+
+def sjf(list2,a):   #短作业优先
+    k = 0 #最短运行时间的序号，默认为最先开始的作业g
+    time = list2[0].arr_time
+    for i in range(0,a):
+        list2[k].sta_time = time
+        list2[k].end_time = int(time) + int(list2[k].run_time)
+        list2[k].order = 1    #已经做完的作业
+        min = 100
+        time = list2[k].end_time
+        for j in range(0,a):
+            if(list2[j].order == 1 or int(time) - int(list2[j].arr_time) <= 0):
+                continue
+            if(int(min) > int(list2[j].run_time)):
+                min = list2[j].run_time
+                k=j
+    for i in range(0,a):
+        list2[i].sta_time = back_time(int(list2[i].sta_time))
+        list2[i].end_time = back_time(int(list2[i].end_time))
+    return list2
+
+def hrrn(list2,a):
+    time = list2[0].arr_time
+    k = 0
+    for i in range(0,a):
+        list2[k].sta_time = time
+        list2[k].end_time = int(time) + int(list2[k].run_time)
+        list2[k].order = 1
+        HR = 0 #最高响应比
+        time = list2[k].end_time
+        for j in range(0,a):
+            if(list2[j].order == 1 or int(time) - int(list2[j].arr_time) <= 0): #排除已经做完的作业和未进入输入井的作业
+                continue
+            if(HR < (int(time) - int(list2[j].arr_time))/int(list2[j].run_time)):  #求最高响应比（等待时间/处理时间）
+                HR = (int(time) - int(list2[j].arr_time))/int(list2[j].run_time)
+                k = j
+    for i in range(0,a):
+        list2[i].sta_time = back_time(int(list2[i].sta_time))
+        list2[i].end_time = back_time(int(list2[i].end_time))
+    return list2
+
+
+
+if __name__=="__main__":
+     while 1:
+         n = input("请选择算法(1、先来先服务  2、短作业优先  3、最高响应比优先):")
+         i = input("请输入作业个数：")
+         data = input("每个作业的三个数据项：")
+         if n=="1":
+             list2=Input(data)
+             fcfs(list2,int(i))
+             for i in range(0,int(i)):
+                 list2[i].output()
+         elif n=="2":
+             list2=Input(data)
+             sjf(list2,int(i))
+             for i in range(0,int(i)):
+                 list2[i].output()
+         elif n=="3":
+             list2 = Input(data)
+             hrrn(list2,int(i))
+             for i in range(0,int(i)):
+                 list2[i].output()
+         else :
+             print("输入错误，请重新输入！！！")
+             break
